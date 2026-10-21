@@ -1,0 +1,8 @@
+{
+  "name": "StudyVerse 10",
+  "description": "CBSE Class 10 Science 3D learning game with interactive Three.js concept simulations, NCERT curriculum fidelity, and SciBuddy guide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

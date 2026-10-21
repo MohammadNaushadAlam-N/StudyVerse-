@@ -1,0 +1,105 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Role check must rely on verified auth token claims, NEVER client-supplied payload
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+
+    // ========================================================================
+    // 1. Published Academic Content (Student-Facing)
+    // ========================================================================
+    
+    // Immutable published chapter bundles
+    match /publishedContent/{academicSession}/chapters/{chapterId} {
+      allow read: if true; // Publicly accessible to students for learning
+      allow write: if isAdmin();
+    }
+
+    // Published individual concept records
+    match /concepts/{conceptId} {
+      // Students can ONLY read published concepts
+      allow read: if resource.data.verificationStatus == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /activities/{activityId} {
+      allow read: if resource.data.verificationStatus == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /simulations/{simulationId} {
+      allow read: if resource.data.verificationStatus == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /questions/{questionId} {
+      allow read: if resource.data.verificationStatus == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /syllabusSources/{sourceId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ========================================================================
+    // 2. Private Admin Pipeline & Ingestion Storage (Strictly Confidential)
+    // ========================================================================
+    
+    match /sourceDocuments/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /sourcePages/{pageId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /extractedSections/{sectionId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /reviewTasks/{taskId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /contentAuditLog/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false; // Audit logs are append-only
+    }
+
+    // ========================================================================
+    // 3. Student Progress & Privacy (Strict Owner Isolation)
+    // ========================================================================
+    
+    match /studentProfiles/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /studyProgress/{userId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    match /questionAttempts/{attemptId} {
+      allow read: if isOwner(resource.data.studentId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if false; // Attempt history is immutable
+    }
+
+    match /wrongAnswerReviews/{reviewId} {
+      allow read, write: if isOwner(resource.data.studentId) || isAdmin();
+      allow create: if isAuthenticated() && request.resource.data.studentId == request.auth.uid;
+    }
+  }
+}
