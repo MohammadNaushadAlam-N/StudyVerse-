@@ -17,6 +17,8 @@ import {
   RotateCcw,
   FileText,
   UserCheck,
+  Smartphone,
+  Download,
 } from 'lucide-react';
 import { runFoundationTests } from './tests/schemaValidation.test.ts';
 import { runPdfPipelineTests } from './tests/pdfPipeline.test.ts';
@@ -32,6 +34,7 @@ import { ContentReviewQueueView } from './admin/ContentReviewQueueView.tsx';
 import { GameShell } from './game/GameShell.tsx';
 import { Chapter1Mission } from './game/Chapter1Mission.tsx';
 import { StudyBuddyDrawer } from './game/StudyBuddyDrawer.tsx';
+import { ApkDownloadModal } from './game/ApkDownloadModal.tsx';
 
 export default function App() {
   const [testResults, setTestResults] = useState<{ passed: boolean; results: string[] } | null>(null);
@@ -39,6 +42,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'game' | 'overview' | 'syllabus' | 'admin_studio' | 'review_queue' | 'schemas' | 'security' | 'tests'>('game');
   const [showChapter1Lab, setShowChapter1Lab] = useState(false);
   const [showStudyBuddy, setShowStudyBuddy] = useState(false);
+  const [showApkDownload, setShowApkDownload] = useState(false);
 
   useEffect(() => {
     // Run tests on mount to provide live verification feedback
@@ -172,6 +176,16 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowApkDownload(true)}
+              className="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800/80 hover:bg-emerald-900/60 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+              title="Download Android APK / PWA"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Get Android APK</span>
+              <span className="sm:hidden">APK</span>
+            </button>
+
             <button
               onClick={() => setShowStudyBuddy(true)}
               className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
@@ -442,6 +456,12 @@ export default function App() {
         onClose={() => setShowStudyBuddy(false)}
         chapterId="ch01"
         conceptId="concept_ch01_chemical_equations"
+      />
+
+      {/* Android APK & PWA Download Modal */}
+      <ApkDownloadModal
+        isOpen={showApkDownload}
+        onClose={() => setShowApkDownload(false)}
       />
     </div>
   );
